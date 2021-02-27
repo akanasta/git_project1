@@ -138,13 +138,18 @@ def correct(s):  # функция коррректирует положение 
 
 
 def turn_around():  # функция высчитывает новые координаты для фигуры, поле её поворота
+    yes = True
     for s in move_shape:
         x = s.rect.top - center[1]
         y = s.rect.left - center[0]
-        if s.rect.left < 0 or s.rect.left > 360 or s.rect.top < 0 or s.rect.top > 685:
-            break
-        s.rect.left = center[0] - x
-        s.rect.top = center[1] - y
+        if center[0] - x < 0 or center[0] - x > 360 or center[1] - y < 0 or center[1] - y > 685:
+            yes = False
+    if yes:
+        for s in move_shape:
+            x = s.rect.top - center[1]
+            y = s.rect.left - center[0]
+            s.rect.left = center[0] - x
+            s.rect.top = center[1] - y
 
 
 def terminate():
@@ -186,13 +191,34 @@ def start_screen(screen):
         clock.tick(50)
 
 
+def pause_screen(screen, score):
+    pause_screen = pygame.Surface([400, 400])
+    pause_screen.fill((210, 70, 70))
+    pause_string = pygame.font.Font(None, 50).render("ПАУЗА", 1, pygame.Color(255, 184, 65))
+    pause_screen.blit(pause_string, (130, 130))
+    score_string = pygame.font.Font(None, 50).render(f"Текущий счёт: {score}", 1, pygame.Color(255, 184, 65))
+    pause_screen.blit(score_string, (20, 180))
+    screen.blit(pause_screen, (0, 140))
+
+    waiting = True
+    while waiting:
+        clock.tick(50)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                waiting = False
+        pygame.display.flip()
+        clock.tick(50)
+
+
 def end_screen(screen, score, record):
     text = [
         "Ваш счёт:", "", "Рекордный счёт заказа:", "", "хотите сделаать ещё один заказ?", "нажмите ПРОБЕЛ"
     ]
-    start_screen = pygame.Surface([400, 685])
-    start_screen.fill((210, 70, 70))
-    start_screen.blit(load_image("упала.png"), (25, 350))
+    end_screen = pygame.Surface([400, 685])
+    end_screen.fill((210, 70, 70))
+    end_screen.blit(load_image("упала.png"), (25, 350))
     font = pygame.font.Font(None, 30)
     text_coord = 100
     for line in text:
@@ -202,12 +228,12 @@ def end_screen(screen, score, record):
         intro_rect.top = text_coord
         intro_rect.x = 30
         text_coord += intro_rect.height
-        start_screen.blit(string_rendered, intro_rect)
+        end_screen.blit(string_rendered, intro_rect)
     record_string = pygame.font.Font(None, 50).render(str(record), 1, pygame.Color(255, 184, 65))
-    start_screen.blit(record_string, (300, 150))
+    end_screen.blit(record_string, (300, 150))
     score_string = pygame.font.Font(None, 50).render(str(score), 1, pygame.Color(255, 184, 65))
-    start_screen.blit(score_string, (170, 100))
-    screen.blit(start_screen, (0, 0))
+    end_screen.blit(score_string, (170, 100))
+    screen.blit(end_screen, (0, 0))
 
     waiting = True
     while waiting:
@@ -237,6 +263,8 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                pause_screen(screen, score)
             if event.type == pygame.KEYDOWN and move:
                 if event.key == pygame.K_LEFT:
                     sdv = - 40
